@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 import torch
 import matplotlib.pyplot as plt
-from model.gradcam.gradcam import get_gradcam, plt_gradcam
+from shrinkai.model.gradcam.gradcam import get_gradcam, plt_gradcam
 import albumentations as A
 import albumentations.pytorch.transforms as AT
 
