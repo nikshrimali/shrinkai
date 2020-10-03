@@ -1,0 +1,61 @@
+name: CIFAR10_MyNet
+save_dir: saved/
+seed: 1
+target_device: 0
+
+arch:
+    type: CIFAR10_S9Model
+    args: {}
+
+train_augmentations:
+    type: alb_train
+    args:
+        [ #resises the image so it can be perfect for our model.
+            transforms.RandomHorizontalFlip(), # FLips the image w.r.t horizontal axis
+            transforms.RandomRotation(10),     #Rotates the image to a specified angel
+            transforms.RandomAffine(0, shear=10, scale=(0.8,1.2)), #Performs actions like zooms, change shear angles.
+            transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2), # Set the color params
+            transforms.ToTensor(), # comvert the image to tensor so that it can work with torch
+            transforms.Normalize(self.mean, self.std) #Normalize all the images
+            ]
+
+        # A.ShiftScaleRotate(shift_limit=0.05, scale_limit=0.05, rotate_limit=15, p=0.5), 
+        # A.RandomCrop(height=32, width=32),
+        # A.RGBShift(r_shift_limit=15, g_shift_limit=15, b_shift_limit=15, p=0.5),
+        # A.RandomBrightnessContrast(p=0.5),
+        # A.GaussNoise(),
+        # A.ElasticTransform(),
+        # A.Cutout(p=1),
+        # A.Normalize(mean=(0.491, 0.482, 0.446), std=(0.247, 0.243, 0.261)),
+        # A.ToTensorV2(),
+
+test_augmentations:
+    type: alb_test
+    args:
+        A.Normalize(mean=(0.491, 0.482, 0.446), std=(0.247, 0.243, 0.261)),
+        A.ToTensorV2()
+
+data_loader:
+    type: CIFAR10DataLoader
+    args:
+        batch_size: 128
+        data_dir: data/
+        nworkers: 4
+        shuffle: True
+
+criterion: cross_entropy_loss
+
+lr_scheduler:
+    type: OneCycleLR
+    args:
+        max_lr: 0.1
+
+optimizer:
+    type: SGD
+    args:
+        lr: 0.001
+        momentum: 0.95
+        weight_decay: 0.0005
+
+training:
+    epochs: 20
