@@ -3,7 +3,7 @@ from shrinkai.data_process.getdata import GetCIFAR10_TrainData
 from shrinkai.data_process.misclassified_data import *
 from torchvision import datasets
 import albumentations as A
-from albumentations.pytorch import ToTensorV2
+
 import numpy as np
 import torch
 
@@ -21,7 +21,7 @@ def cifar_alb_trainData():
         # A.MaskDropout((10,15), p=1),
         A.Cutout(num_holes=1,max_h_size=16,max_w_size=16,fill_value=mean ,always_apply=False, p=0.5),
         A.Normalize(mean=mean, std=std),
-        ToTensorV2()]
+        ToTensor()]
 
     transforms_result = A.Compose(train_transform)
     return lambda img:transforms_result(image=np.array(img))["image"]

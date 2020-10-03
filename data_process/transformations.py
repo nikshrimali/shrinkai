@@ -2,8 +2,8 @@ from torchvision import transforms
 import numpy as np
 import torch
 import albumentations as A
-# from albumentations.pytorch import ToTensor
-from albumentations.pytorch import ToTensorV2
+from albumentations.pytorch import ToTensor
+# from albumentations.pytorch import ToTensorV2
 
 
 # Returns a list of transformations when called
@@ -30,23 +30,7 @@ class GetTransforms:
             transforms.Normalize(self.mean, self.std) #Normalize all the images
             ]
         return train_transformations
-    
-    def trans_albumentations(self):
-        '''Returns MMDA Albumentations transformations to dataset'''
-        train_transform = [
-            A.ShiftScaleRotate(shift_limit=0.05, scale_limit=0.05, rotate_limit=15, p=0.5),
-            # A.RandomCrop(height=8, width=8),
-            A.RGBShift(r_shift_limit=15, g_shift_limit=15, b_shift_limit=15, p=0.5),
-            # A.RandomBrightnessContrast(p=0.5),
-            # A.GaussNoise(),
-            # A.ElasticTransform(),
-            # A.MaskDropout((10,15), p=1),
-            # A.Cutout(num_holes=1,max_h_size=16,max_w_size=16,fill_value=(0.4914, 0.4822, 0.4465),always_apply=False, p=0.5),
-            A.Normalize(mean=self.mean, std=self.std),
-            ToTensorV2()]
-            # transforms.Normalize((0.491, 0.482, 0.446), (0.247, 0.243, 0.261))]
-        # print(f'Augmentations Applied are {train_transform}')
-        return train_transform
+
 
     def testaugs(self):
         test_transforms = [
