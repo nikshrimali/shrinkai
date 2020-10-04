@@ -52,32 +52,32 @@ def plot_gradcam(target_layers, device, test_loader, model, mean, std, class_nam
 
 # Applying Albumentations
 
-class CIFAR10Albumentations(AugmentationFactoryBase):
+# class CIFAR10Albumentations(AugmentationFactoryBase):
 
-    mean = (0.4914, 0.4822, 0.4465)
-    std = (0.2023, 0.1994, 0.2010)
+#     mean = (0.4914, 0.4822, 0.4465)
+#     std = (0.2023, 0.1994, 0.2010)
 
-    def build_train(self):
-        train_transforms = A.Compose([
-            A.PadIfNeeded(min_height=36, min_width=36),
-            A.RandomCrop(height=32, width=32),
-            A.HorizontalFlip(),
-            A.Normalize(mean=self.mean,
-                        std=self.std),
-            A.Cutout(num_holes=4),
-            AT.ToTensor()
-        ])
+#     def build_train(self):
+#         train_transforms = A.Compose([
+#             A.PadIfNeeded(min_height=36, min_width=36),
+#             A.RandomCrop(height=32, width=32),
+#             A.HorizontalFlip(),
+#             A.Normalize(mean=self.mean,
+#                         std=self.std),
+#             A.Cutout(num_holes=4),
+#             AT.ToTensor()
+#         ])
 
-        return AlbumentationTransforms(train_transforms)
+#         return AlbumentationTransforms(train_transforms)
 
-    def build_test(self):
-        test_transforms = A.Compose([
-            A.Normalize(mean=self.mean,
-                        std=self.std),
-            AT.ToTensor()
-        ])
+#     def build_test(self):
+#         test_transforms = A.Compose([
+#             A.Normalize(mean=self.mean,
+#                         std=self.std),
+#             AT.ToTensor()
+#         ])
 
-        return AlbumentationTransforms(test_transforms)
+#         return AlbumentationTransforms(test_transforms)
 
 
 

@@ -127,4 +127,5 @@ def plt_gradcam(gcam_layers, images, target_labels, predicted_labels, class_labe
     plt.tight_layout()
     plt.subplots_adjust(top=0.95, wspace=0.2, hspace=0.2)
     plt.show()
+    plt.savefig('gradcam.png')
 

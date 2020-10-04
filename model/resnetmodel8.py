@@ -18,7 +18,7 @@ class BasicBlock(nn.Module):
     def __init__(self, in_planes, planes, stride=1):
         super(BasicBlock, self).__init__()
 
-        DROPOUT = 0.03
+        DROPOUT = 0.0
 
         self.conv1 = nn.Conv2d(
             in_planes, planes, kernel_size=3, stride=stride, padding=1, bias=False)
