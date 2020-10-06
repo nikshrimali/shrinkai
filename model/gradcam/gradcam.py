@@ -54,9 +54,8 @@ def get_gradcam(images, labels, model:torch.nn.Module, device:str, target_layers
 
     # predicted probabilities and class ids
     pred_probs, pred_ids = gcam.forward(images) # Predictions of the model on the data
-
+    # print(f'Predict Prods {pred_probs}, {pred_ids}')
     # actual class ids
-    # target_ids = torch.LongTensor(labels).view(len(images), -1).to(device)
     target_ids = labels.view(len(images), -1).to(device)
 
     # backward pass wrt to the actual ids
@@ -67,8 +66,6 @@ def get_gradcam(images, labels, model:torch.nn.Module, device:str, target_layers
 
     # fetch the grad cam layers of all the images
     for target_layer in target_layers:
-        # logger.info(f'generating Grad-CAM for {target_layer}')
-
         # Grad-CAM generate function??
         regions = gcam.generate(target_layer=target_layer)
 
@@ -87,8 +84,9 @@ def plt_gradcam(gcam_layers, images, target_labels, predicted_labels, class_labe
     '''
     This function takes input as d
     '''
+
     images = images.cpu()
-    # convert BCHW to BHWC for plotting stufffff
+    # convert BCHW to BHWC for plotting stuff
     images = images.permute(0, 2, 3, 1)
     target_labels = target_labels.cpu()
 
@@ -128,4 +126,3 @@ def plt_gradcam(gcam_layers, images, target_labels, predicted_labels, class_labe
     plt.subplots_adjust(top=0.95, wspace=0.2, hspace=0.2)
     plt.show()
     plt.savefig('gradcam.png')
-

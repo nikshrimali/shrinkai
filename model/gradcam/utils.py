@@ -24,23 +24,15 @@ class UnNormalize:
             # The normalize code -> t.sub_(m).div_(s)
         return tensor
 
-
-
 # Plot Gradcam
 
-def plot_gradcam(target_layers, device, test_loader, model, mean, std, class_names):
+def plot_gradcam(target_layers, data, device, model, mean, std, class_names, misclassified=False):
     plt.style.use("dark_background")
     # logger.info('Plotting Grad-CAM...')
 
+    
     # use the test images
-    data, target = next(iter(test_loader))
-    data, target = data.to(device), target.to(device)
-
-    # logger.info('Taking {5} samples')
-    # get 5 images
-    data = data[:5]
-    target = target[:5]
-
+    data, target = data.to(device), target.to(device) # Sending to Gradcam
     # get_gradcam
     gcam_layers, predicted_probs, predicted_classes = get_gradcam(
         data, target, model, device, target_layers)
@@ -48,37 +40,14 @@ def plot_gradcam(target_layers, device, test_loader, model, mean, std, class_nam
     # get the denomarlization function
     unorm = UnNormalize(mean=mean, std=std)
 
+    # If wrongly classified
+    if misclassified: # Get 25 misclassified images
+        for image, label, target in enumerate(zip(gcam_layers, predicted_probs, predicted_classes)):
+
+            if label != target:
+                in_data = zip(images)
+
     plt_gradcam(gcam_layers=gcam_layers, images=data, target_labels=target, predicted_labels= predicted_classes, class_labels= class_names, denormalize= unorm)
-
-# Applying Albumentations
-
-# class CIFAR10Albumentations(AugmentationFactoryBase):
-
-#     mean = (0.4914, 0.4822, 0.4465)
-#     std = (0.2023, 0.1994, 0.2010)
-
-#     def build_train(self):
-#         train_transforms = A.Compose([
-#             A.PadIfNeeded(min_height=36, min_width=36),
-#             A.RandomCrop(height=32, width=32),
-#             A.HorizontalFlip(),
-#             A.Normalize(mean=self.mean,
-#                         std=self.std),
-#             A.Cutout(num_holes=4),
-#             AT.ToTensor()
-#         ])
-
-#         return AlbumentationTransforms(train_transforms)
-
-#     def build_test(self):
-#         test_transforms = A.Compose([
-#             A.Normalize(mean=self.mean,
-#                         std=self.std),
-#             AT.ToTensor()
-#         ])
-
-#         return AlbumentationTransforms(test_transforms)
-
 
 
 def denormalize(tensor, mean, std):

@@ -8,10 +8,12 @@ cwd = os.getcwd()
 # model_dir = os.path.join(cwd, 'Assignment-6/saved_models/model.pth')
 
 
-def model_testing(model, device, test_dataloader, test_acc, test_losses, misclassified = []):
+def model_testing(model, device, test_dataloader, test_acc, test_losses):
     
     # model.load_state_dict(torch.load(model_dir)) # Loading the saved model
     model.eval()
+    misclassified = []
+    correct_classified = []
     test_loss = 0
     correct = 0
     class_correct = list(0. for i in range(10))
@@ -19,6 +21,7 @@ def model_testing(model, device, test_dataloader, test_acc, test_losses, misclas
     # label = 0
     classes = ('plane', 'car', 'bird', 'cat',
            'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
+    
     
     with torch.no_grad():
 
@@ -33,6 +36,8 @@ def model_testing(model, device, test_dataloader, test_acc, test_losses, misclas
             for d,i,j in zip(data, pred, target):
                 if i != j:
                     misclassified.append([d.cpu(),i[0].cpu(),j.cpu()])
+                else:
+                    correct_classified.append([d.cpu(),i[0].cpu(),j.cpu()])
 
             test_loss += F.nll_loss(output, target, reduction='sum').item()
             correct += pred.eq(target.view_as(pred)).sum().item()
@@ -44,4 +49,4 @@ def model_testing(model, device, test_dataloader, test_acc, test_losses, misclas
         100. * correct / len(test_dataloader.dataset)))
     
     test_acc.append(100. * correct / len(test_dataloader.dataset))
-    return misclassified
+    return misclassified, correct_classified
