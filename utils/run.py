@@ -8,6 +8,8 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torch.optim.lr_scheduler import StepLR, ReduceLROnPlateau
 
+from torch_lr_finder import LRFinder
+
 # Importing model modules
 from shrinkai.model.model_test import model_testing
 from shrinkai.model.model_train import model_training
@@ -18,9 +20,20 @@ from shrinkai.data_process.albumentation import *
 from shrinkai.data_process.misclassified_data import *
 from shrinkai.model.resnetmodel8 import ResNet18
 
+import random, os
+import numpy as np
+
 
 import matplotlib.pyplot as plt
 
+import yaml
+
+def load_config(filename: str) -> dict:
+    '''Load a configuration file as YAML'''
+    with open(filename) as fh:
+        config = yaml.safe_load(fh)
+
+    return config
 def get_attributes(module, name, config, *args):
     '''Creates an instance of constructor as per the dict'''
     const_name = config[name]['type']
@@ -39,7 +52,7 @@ class Shrink:
 
     plt.style.use("dark_background")
 
-    def seed_everything(seed: int) -> None:
+    def seed_everything(self,seed: int) -> None:
         '''Seeds the Code so that we get predictable outputs'''
         random.seed(seed)
         os.environ['PYTHONHASHSEED'] = str(seed)
@@ -144,9 +157,9 @@ class Shrink:
         if train:
             '''Trains the model and sends the output'''
             criterion = nn.CrossEntropyLoss()
-            optimizer = optim.SGD(self.model.parameters(), **config['optimizer']['args'])
-            # scheduler = ReduceLROnPlateau(optimizer, **config['ReduceLROnPlateau']['args'])
-            scheduler = StepLR(optimizer, step_size=25, gamma=0.1)
+            optimizer = optim.SGD(self.model.parameters(), **self.config['optimizer']['args'])
+            scheduler = ReduceLROnPlateau(optimizer, **config['ReduceLROnPlateau']['args'])
+            # scheduler = StepLR(optimizer, step_size=25, gamma=0.1)
 
             train_acc = []
             train_losses = []
@@ -163,10 +176,10 @@ class Shrink:
             for i in range(EPOCHS):
                 print(f'EPOCHS : {i}')
                 model_training(self.model, self.device, self.trainloader, optimizer, train_acc, train_losses, l1_loss=False)
-                torch.save(model.state_dict(), self.model_path)
+                torch.save(self.model.state_dict(), self.model_path)
                 scheduler.step()
                 self.misclassified, self.correct_classified = model_testing(self.model, self.device, self.testloader, test_acc, test_losses)
-                return self.model
+                # return self.model
         
     def test_model(self):
         '''Loads and saves the test model'''
@@ -178,3 +191,14 @@ class Shrink:
         self.model.load_state_dict(torch.load(model_path))
         self.misclassified, self.correct_classified = model_testing(self.model, self.device, self.testloader, test_acc, test_losses)
         return self.misclassified, self.correct_classified
+
+    def findbestlr(self):
+        criterion = nn.CrossEntropyLoss()
+        optimizer = optim.SGD(self.model.parameters(), lr= 0.00001, momentum= 0.95, weight_decay= 0.0005)
+        self.lr_finder = LRFinder(self.model, optimizer, criterion, device=self.device)
+        print(self.config['range_test']['args'])
+        self.lr_finder.range_test(self.trainloader, **self.config['range_test']['args'])
+        self.lr_finder.plot() # to inspect the loss-learning rate graph
+        self.lr_finder.reset() # to reset the model and optimizer to their initial state
+        return self.lr_finder
+
