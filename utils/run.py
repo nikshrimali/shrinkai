@@ -158,7 +158,7 @@ class Shrink:
             '''Trains the model and sends the output'''
             criterion = nn.CrossEntropyLoss()
             optimizer = optim.SGD(self.model.parameters(), **self.config['optimizer']['args'])
-            scheduler = ReduceLROnPlateau(optimizer, **config['ReduceLROnPlateau']['args'])
+            scheduler = ReduceLROnPlateau(optimizer, **self.config['lrmod']['args'])
             # scheduler = StepLR(optimizer, step_size=25, gamma=0.1)
 
             train_acc = []
@@ -168,17 +168,18 @@ class Shrink:
 
             EPOCHS = self.config['training']['epochs']
             print(f'Starting Training for {EPOCHS} Epochs')
-            try:
-                os.remove(self.model_path) # deleting the existing file
-            except:
-                print('Existing trained model not removed')
+            # try:
+            #     os.remove(self.model_path) # deleting the existing file
+            # except:
+            #     print('Existing trained model not removed')
 
             for i in range(EPOCHS):
                 print(f'EPOCHS : {i}')
                 model_training(self.model, self.device, self.trainloader, optimizer, train_acc, train_losses, l1_loss=False)
                 torch.save(self.model.state_dict(), self.model_path)
-                scheduler.step()
                 self.misclassified, self.correct_classified = model_testing(self.model, self.device, self.testloader, test_acc, test_losses)
+                scheduler.step(test_losses[-1])
+
                 # return self.model
         
     def test_model(self):
@@ -196,7 +197,6 @@ class Shrink:
         criterion = nn.CrossEntropyLoss()
         optimizer = optim.SGD(self.model.parameters(), lr= 0.00001, momentum= 0.95, weight_decay= 0.0005)
         self.lr_finder = LRFinder(self.model, optimizer, criterion, device=self.device)
-        print(self.config['range_test']['args'])
         self.lr_finder.range_test(self.trainloader, **self.config['range_test']['args'])
         self.lr_finder.plot() # to inspect the loss-learning rate graph
         self.lr_finder.reset() # to reset the model and optimizer to their initial state
