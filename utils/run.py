@@ -18,7 +18,7 @@ from shrinkai.model.gradcam import gen_gradcam
 # Importing data process modules
 from shrinkai.data_process.albumentation import *
 from shrinkai.data_process.misclassified_data import *
-from shrinkai.model.resnetmodel8 import ResNet18
+from shrinkai.model.model11_1 import davidnet
 
 import random, os
 import numpy as np
@@ -61,11 +61,11 @@ class Shrink:
         torch.cuda.manual_seed(seed)
 
 
-    def load_data(self, in_dir='./data'):
+    def load_data(self, train_transforms, test_transforms, in_dir='./data'):
         '''Downloads the dataset and returns train and testloaders after applying the Transformations'''
 
-        trainset = datasets.CIFAR10(in_dir, train=True, download=True, transform=cifar_alb_trainData())
-        testset = datasets.CIFAR10(in_dir, train=False, download=True, transform=cifar_alb_testdata())
+        trainset = datasets.CIFAR10(in_dir, train=True, download=True, transform=train_transforms())
+        testset = datasets.CIFAR10(in_dir, train=False, download=True, transform=test_transforms())
 
         self.trainloader = torch.utils.data.DataLoader(trainset, **self.config['train_data_loader']['args'])
         self.testloader = torch.utils.data.DataLoader(testset, **self.config['test_data_loader']['args'])
@@ -87,13 +87,15 @@ class Shrink:
         elif mode.lower() == 'test':
             images, labels = next(iter(self.testloader))
             labels = np.array(labels)
+        
+        print(images[0].shape)
 
-        images = self.denormalize(images)
+        # images = self.denormalize(images)
         for index in range(1,n+1):
             plt.subplot(5,5,index)
             plt.axis('off')
             # Gets the first n images of the dataset
-            plt.imshow(np.transpose(images[index], (1, 2, 0))) # Plots the dataset
+            plt.imshow(images[index]) # Plots the dataset
             plt.title(self.class_names[labels[index]])
         
     
@@ -178,6 +180,7 @@ class Shrink:
                 model_training(self.model, self.device, self.trainloader, optimizer, train_acc, train_losses, l1_loss=False)
                 torch.save(self.model.state_dict(), self.model_path)
                 self.misclassified, self.correct_classified = model_testing(self.model, self.device, self.testloader, test_acc, test_losses)
+                print('Type of test_losses',type(test_losses[-1]))
                 scheduler.step(test_losses[-1])
 
                 # return self.model
