@@ -42,10 +42,12 @@ def cifar_alb11():
     mean = (0.491, 0.482, 0.446)
     mean = np.mean(mean)
     train_transforms = [
+        A.Normalize(mean=mean, std=std),
         A.PadIfNeeded(min_height=40, min_width=40, border_mode=4, always_apply=True, p=1.0),
         A.RandomCrop (32, 32, always_apply=True, p=1.0),
         A.HorizontalFlip(p=0.5),
-        A.Cutout(num_holes=1, max_h_size=8, max_w_size=8, fill_value=mean, always_apply=False, p=0.5)
+        A.Cutout(num_holes=1, max_h_size=8, max_w_size=8, fill_value=mean, always_apply=False, p=0.5),
+        ToTensor()
     ]
     transforms_result = A.Compose(train_transforms)
     return lambda img:transforms_result(image=np.array(img))["image"]

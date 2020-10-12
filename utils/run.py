@@ -18,7 +18,9 @@ from shrinkai.model.gradcam import gen_gradcam
 # Importing data process modules
 from shrinkai.data_process.albumentation import *
 from shrinkai.data_process.misclassified_data import *
-from shrinkai.model.model11_1 import davidnet
+from shrinkai.model import ResNet18
+import shrinkai.model as model_arch
+
 
 import random, os
 import numpy as np
@@ -153,41 +155,37 @@ class Shrink:
     
     def get_model(self, train=True):
         
-        import shrinkai.model as model_arch
         self.model = get_attributes(model_arch, 'model', self.config).to(self.device)
         
         if train:
             '''Trains the model and sends the output'''
             criterion = nn.CrossEntropyLoss()
             optimizer = optim.SGD(self.model.parameters(), **self.config['optimizer']['args'])
-            scheduler = ReduceLROnPlateau(optimizer, **self.config['lrmod']['args'])
+            
+            scheduler = torch.optim.lr_scheduler.OneCycleLR(
+                optimizer, steps_per_epoch=len(self.trainloader),
+                **self.config['lrmod']['args']
+                )
             # scheduler = StepLR(optimizer, step_size=25, gamma=0.1)
 
-            train_acc = []
-            train_losses = []
-            test_acc = []
-            test_losses = []
+            self.train_acc = []
+            self.train_losses = []
+            self.test_acc = []
+            self.test_losses = []
 
             EPOCHS = self.config['training']['epochs']
             print(f'Starting Training for {EPOCHS} Epochs')
-            # try:
-            #     os.remove(self.model_path) # deleting the existing file
-            # except:
-            #     print('Existing trained model not removed')
 
             for i in range(EPOCHS):
                 print(f'EPOCHS : {i}')
-                model_training(self.model, self.device, self.trainloader, optimizer, train_acc, train_losses, l1_loss=False)
+                model_training(self.model, self.device, self.trainloader, optimizer, self.train_acc, self.train_losses, l1_loss=False)
                 torch.save(self.model.state_dict(), self.model_path)
-                self.misclassified, self.correct_classified = model_testing(self.model, self.device, self.testloader, test_acc, test_losses)
-                print('Type of test_losses',type(test_losses[-1]))
-                scheduler.step(test_losses[-1])
-
-                # return self.model
+                self.misclassified, self.correct_classified = model_testing(self.model, self.device, self.testloader, self.test_acc, self.test_losses)
+                scheduler.step()
         
     def test_model(self):
         '''Loads and saves the test model'''
-        train_acc = []
+
         test_losses = []
         test_acc = []
 
@@ -198,10 +196,27 @@ class Shrink:
 
     def findbestlr(self):
         criterion = nn.CrossEntropyLoss()
-        optimizer = optim.SGD(self.model.parameters(), lr= 0.00001, momentum= 0.95, weight_decay= 0.0005)
+        optimizer = optim.SGD(self.model.parameters(), lr= 0.01, momentum= 0.95, weight_decay= 0.0005)
         self.lr_finder = LRFinder(self.model, optimizer, criterion, device=self.device)
         self.lr_finder.range_test(self.trainloader, **self.config['range_test']['args'])
         self.lr_finder.plot() # to inspect the loss-learning rate graph
         self.lr_finder.reset() # to reset the model and optimizer to their initial state
         return self.lr_finder
+    
+    def model_metrics(self):
+        fig, axs = plt.subplots(2,2, figsize=(15,10))
+        axs[0,0].plot(self.train_losses)
+        axs[0,0].set_title('Train_Losses')
+        axs[0,1].plot(self.train_acc)
+        axs[0,1].set_title('Training_Accuracy')
+        axs[1,0].plot(self.test_losses)
+        axs[1,0].set_title('Test_Losses')
+        axs[1,1].plot(self.test_acc)
+        axs[1,1].set_title('Test_Accuracy')
+
+    # def take_lr(x):
+    # return x[0]
+
+    # tup = zip(lr_finder.history['loss'], lr_finder.history['lr'])
+    # sorted_tup = (sorted(tup,key=take_lr,  reverse=False))
 
