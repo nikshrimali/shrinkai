@@ -90,14 +90,14 @@ class Shrink:
             images, labels = next(iter(self.testloader))
             labels = np.array(labels)
         
-        print(images[0].shape)
+        images = self.denormalize(images)
 
         # images = self.denormalize(images)
         for index in range(1,n+1):
             plt.subplot(5,5,index)
             plt.axis('off')
             # Gets the first n images of the dataset
-            plt.imshow(images[index]) # Plots the dataset
+            plt.imshow(np.transpose(images[index], (1,2,0))) # Plots the dataset
             plt.title(self.class_names[labels[index]])
         
     
