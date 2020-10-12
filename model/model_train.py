@@ -9,7 +9,7 @@ import os
 
 # model_dir = os.path.join(cwd, 'Assignment-6/saved_models/model.pth')
 
-def model_training(model, device, train_dataloader, optimizer, train_acc, train_losses, l1_loss=False):
+def model_training(model, device, train_dataloader, optimizer, scheduler, train_acc, train_losses, l1_loss=False):
             
     model.train()
     pbar = tqdm(train_dataloader)
@@ -43,4 +43,5 @@ def model_training(model, device, train_dataloader, optimizer, train_acc, train_
         # print statistics
         running_loss += loss.item()
         pbar.set_description(desc=f'Loss={loss.item()} Batch_id={batch_idx} Accuracy={100*correct/processed:0.2f}')
+        scheduler.step()
     train_acc.append(100*correct/processed)

@@ -18,8 +18,9 @@ from shrinkai.model.gradcam import gen_gradcam
 # Importing data process modules
 from shrinkai.data_process.albumentation import *
 from shrinkai.data_process.misclassified_data import *
-from shrinkai.model import ResNet18
 import shrinkai.model as model_arch
+import torchviz
+
 
 
 import random, os
@@ -156,32 +157,51 @@ class Shrink:
     def get_model(self, train=True):
         
         self.model = get_attributes(model_arch, 'model', self.config).to(self.device)
-        
+        self.epochs = 25
         if train:
             '''Trains the model and sends the output'''
             criterion = nn.CrossEntropyLoss()
-            optimizer = optim.SGD(self.model.parameters(), **self.config['optimizer']['args'])
-            
+            optimizer = optim.SGD(self.model.parameters(),lr = 0.01, momentum=0.9)# **self.config['optimizer']['args'])
+            max_at_epoch = 5
+            self.best_lr = 0.343
+            pct_start_val =  (max_at_epoch * len(self.trainloader)) / (self.epochs * len(self.trainloader))
+
             scheduler = torch.optim.lr_scheduler.OneCycleLR(
-                optimizer, steps_per_epoch=len(self.trainloader),
-                **self.config['lrmod']['args']
+                optimizer,
+                max_lr=self.best_lr,
+                total_steps = len(self.trainloader) *self.epochs,
+                steps_per_epoch=len(self.trainloader),
+                epochs=self.epochs,
+                pct_start=pct_start_val,
+                anneal_strategy='cos',
+                div_factor=10,
+                final_div_factor=10
                 )
+            # scheduler = torch.optim.lr_scheduler.OneCycleLR(
+            #     optimizer, steps_per_epoch=len(self.trainloader),
+            #     **self.config['lrmod']['args'],
+            #     total_steps = 490
+            #     )
             # scheduler = StepLR(optimizer, step_size=25, gamma=0.1)
 
             self.train_acc = []
             self.train_losses = []
             self.test_acc = []
             self.test_losses = []
+            self.lr_metric = []
 
             EPOCHS = self.config['training']['epochs']
             print(f'Starting Training for {EPOCHS} Epochs')
 
             for i in range(EPOCHS):
-                print(f'EPOCHS : {i}')
-                model_training(self.model, self.device, self.trainloader, optimizer, self.train_acc, self.train_losses, l1_loss=False)
+                lr_value = [group['lr']
+                            for group in optimizer.param_groups][0]
+                self.lr_metric.append(lr_value)
+                print(f'EPOCHS : {i}', lr_value)
+                model_training(self.model, self.device, self.trainloader, optimizer, scheduler, self.train_acc, self.train_losses, l1_loss=False)
                 torch.save(self.model.state_dict(), self.model_path)
                 self.misclassified, self.correct_classified = model_testing(self.model, self.device, self.testloader, self.test_acc, self.test_losses)
-                scheduler.step()
+                
         
     def test_model(self):
         '''Loads and saves the test model'''
@@ -213,6 +233,17 @@ class Shrink:
         axs[1,0].set_title('Test_Losses')
         axs[1,1].plot(self.test_acc)
         axs[1,1].set_title('Test_Accuracy')
+
+    def print_visualization(self, input_size):
+        '''Prints a visualization graph for Torch models'''
+        C, H, W = input_size
+        x = torch.zeros(1, C, H, W, dtype=torch.float, requires_grad=False)
+        x = x.to(self.device)
+        out = self.model(x)
+        # plot graph of variable, not of a nn.Module
+        dot_graph = torchviz.make_dot(out)
+        dot_graph.view()
+        return dot_graph
 
     # def take_lr(x):
     # return x[0]
