@@ -15,8 +15,12 @@ from shrinkai.model.model_test import model_testing
 from shrinkai.model.model_train import model_training
 from shrinkai.model.gradcam import gen_gradcam
 
+from torch.utils.data import Dataset, DataLoader
+
+
 # Importing data process modules
 from shrinkai.data_process.albumentation import *
+from shrinkai.data_process.gettinyimagenet import *
 from shrinkai.data_process.misclassified_data import *
 import shrinkai.model as model_arch
 import torchviz
@@ -73,9 +77,17 @@ class Shrink:
         self.trainloader = torch.utils.data.DataLoader(trainset, **self.config['train_data_loader']['args'])
         self.testloader = torch.utils.data.DataLoader(testset, **self.config['test_data_loader']['args'])
         return self.trainloader, self.testloader
+    
+    def load_imagenet_data(self, train_transforms, test_transforms):
+        '''Loads the imagenet dataset'''
+        self.trainloader, self.testloader = get_imagenet_loader(
+            train_transforms, test_transforms,
+            self.config['train_data_loader']['args'],
+            self.config['test_data_loader']['args'])
 
     def mean_std_dev(self):
         pass
+
 
     def show_data(self, mode='train', n=25):
         '''Plots the images on a gridplot to show the images passed via dataloader'''
@@ -99,7 +111,7 @@ class Shrink:
             plt.axis('off')
             # Gets the first n images of the dataset
             plt.imshow(np.transpose(images[index], (1,2,0))) # Plots the dataset
-            plt.title(self.class_names[labels[index]])
+            # plt.title(self.class_names[labels[index]])
         
     
     def get_batched_data(self,in_data):
@@ -201,6 +213,8 @@ class Shrink:
                 model_training(self.model, self.device, self.trainloader, optimizer, scheduler, self.train_acc, self.train_losses, l1_loss=False)
                 torch.save(self.model.state_dict(), self.model_path)
                 self.misclassified, self.correct_classified = model_testing(self.model, self.device, self.testloader, self.test_acc, self.test_losses)
+        else:
+            return self.model
                 
         
     def test_model(self):

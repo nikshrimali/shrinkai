@@ -52,6 +52,7 @@ def cifar_alb11():
     transforms_result = A.Compose(train_transforms)
     return lambda img:transforms_result(image=np.array(img))["image"]
 
+
 def cifar_alb_testdata():
     mean = (0.491, 0.482, 0.446)
     std = (0.247, 0.243, 0.261)
@@ -60,3 +61,43 @@ def cifar_alb_testdata():
         ToTensor()]
     transforms_result = A.Compose(test_transform)
     return lambda img:transforms_result(image=np.array(img))["image"]
+
+
+
+def resnet_train_alb():
+    '''Applies image augmentations to image dataset 
+    RandomCrop 32, 32 (after padding of 4) >> FlipLR >> Followed by CutOut(8, 8)
+    
+    Returns:
+        list of transforms'''
+    mean = [0.4802, 0.4481, 0.3975]
+    std = [0.2302, 0.2265, 0.2262]
+ 
+    train_transforms = [
+        A.Normalize(mean=mean, std=std),
+        A.PadIfNeeded(min_height=70, min_width=70, border_mode=4, always_apply=True, p=1.0),
+        A.RandomCrop (64, 64, always_apply=True, p=1.0),
+        A.HorizontalFlip(p=0.5),
+        A.Cutout(num_holes=1, max_h_size=32, max_w_size=32, fill_value=mean, always_apply=False, p=1),
+        ToTensor()
+    ]
+    transforms_result = A.Compose(train_transforms)
+    return lambda img:transforms_result(image=np.array(img))["image"]
+
+def resent_test_alb():
+    mean = (0.5)
+    test_transform = [
+        A.Normalize(mean=mean, std=std),
+        ToTensor()]
+    transforms_result = A.Compose(test_transform)
+    return lambda img:transforms_result(image=np.array(img))["image"]
+# transforms_result #lambda img:transforms_result(image=np.array(img))["image"]
+
+class AlbumentationTransforms:
+    def __init__(self, transforms):
+        self.transforms = transforms
+
+    def __call__(self, img):
+        img = np.array(img)
+
+        return self.transforms(image=img)['image']
