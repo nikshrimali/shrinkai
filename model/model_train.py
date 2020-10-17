@@ -9,7 +9,7 @@ import os
 
 # model_dir = os.path.join(cwd, 'Assignment-6/saved_models/model.pth')
 
-def model_training(model, device, train_dataloader, optimizer, scheduler, train_acc, train_losses, l1_loss=False):
+def model_training(model, device, train_dataloader, optimizer, scheduler, train_acc, train_losses, in_loss, l1_loss=False):
             
     model.train()
     pbar = tqdm(train_dataloader)
@@ -21,7 +21,7 @@ def model_training(model, device, train_dataloader, optimizer, scheduler, train_
         data, target = data.to(device), target.to(device)
         optimizer.zero_grad()
         y_pred = model(data)
-        loss = F.nll_loss(y_pred, target)
+        loss = in_loss(y_pred, target)
 
         # IF L1 Loss
         if l1_loss:

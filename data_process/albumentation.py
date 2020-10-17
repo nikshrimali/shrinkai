@@ -78,7 +78,7 @@ def resnet_train_alb():
         A.PadIfNeeded(min_height=70, min_width=70, border_mode=4, always_apply=True, p=1.0),
         A.RandomCrop (64, 64, always_apply=True, p=1.0),
         A.HorizontalFlip(p=0.5),
-        A.Cutout(num_holes=1, max_h_size=32, max_w_size=32, fill_value=mean, always_apply=False, p=1),
+        A.Cutout(num_holes=1, max_h_size=16, max_w_size=16, fill_value=mean, always_apply=False, p=1),
         ToTensor()
     ]
     transforms_result = A.Compose(train_transforms)
