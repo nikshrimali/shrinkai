@@ -196,7 +196,7 @@ class Shrink:
             self.test_losses = []
             self.lr_metric = []
 
-            EPOCHS = self.config['training']['epochs']
+            EPOCHS = self.epochs
             print(f'Starting Training for {EPOCHS} Epochs')
 
             for i in range(EPOCHS):
