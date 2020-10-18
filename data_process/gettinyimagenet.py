@@ -21,7 +21,7 @@ class TinyImageNet(Dataset):
     CLASS_LIST_FILE = 'wnids.txt'
     VAL_ANNOTATION_FILE = 'val_annotations.txt'
 
-    def __init__(self, root, train=True, transform=None, target_transform=None, download=False):
+    def __init__(self, root, train=True, transform=None, target_transform=None, download=False, train_split=0.7):
         self.root = root
         self.transform = transform
         self.target_transform = target_transform
@@ -43,6 +43,7 @@ class TinyImageNet(Dataset):
                                        for text in fp.readlines()])
         self.label_text_to_number = {
             text: i for i, text in enumerate(self.label_texts)}
+            
 
         # build labels for NUM_IMAGES_PER_CLASS images
         if train:
@@ -58,9 +59,8 @@ class TinyImageNet(Dataset):
                     file_name, label_text = terms[0], terms[1]
                     self.labels[file_name] = self.label_text_to_number[label_text]
 
-        self.target = [self.labels[os.path.basename(
-            filename)] for filename in self.image_paths]
-
+        self.target = [self.labels[os.path.basename(filename)] for filename in self.image_paths]
+       
     def download_data(self):
         download_and_extract_archive(self.url, self.root, filename=self.filename)
 

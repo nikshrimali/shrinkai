@@ -169,13 +169,13 @@ class Shrink:
     def get_model(self, train=True):
         
         self.model = get_attributes(model_arch, 'model', self.config).to(self.device)
-        self.epochs = 25
+        self.epochs = self.config['epochs']
         if train:
             '''Trains the model and sends the output'''
             criterion = nn.CrossEntropyLoss(reduction='mean')
             optimizer = optim.SGD(self.model.parameters(),lr = 0.01, momentum=0.9)# **self.config['optimizer']['args'])
             max_at_epoch = 5
-            self.best_lr = 0.343
+            self.best_lr = self.config['best_lr']
             pct_start_val =  (max_at_epoch * len(self.trainloader)) / (self.epochs * len(self.trainloader))
 
             scheduler = torch.optim.lr_scheduler.OneCycleLR(
@@ -189,12 +189,6 @@ class Shrink:
                 div_factor=10,
                 final_div_factor=10
                 )
-            # scheduler = torch.optim.lr_scheduler.OneCycleLR(
-            #     optimizer, steps_per_epoch=len(self.trainloader),
-            #     **self.config['lrmod']['args'],
-            #     total_steps = 490
-            #     )
-            # scheduler = StepLR(optimizer, step_size=25, gamma=0.1)
 
             self.train_acc = []
             self.train_losses = []
