@@ -24,7 +24,7 @@ def model_testing(model, device, test_dataloader, test_acc, test_losses, in_loss
                 else:
                     correct_classified.append([d.cpu(),i[0].cpu(),j.cpu()])
 
-            test_loss += in_loss(output, target, reduction='sum').item()
+            test_loss += in_loss(output, target).item()
             correct += pred.eq(target.view_as(pred)).sum().item()
     test_loss /= len(test_dataloader.dataset)
     test_losses.append(test_loss)

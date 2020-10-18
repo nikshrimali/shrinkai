@@ -172,7 +172,7 @@ class Shrink:
         self.epochs = 25
         if train:
             '''Trains the model and sends the output'''
-            criterion = nn.CrossEntropyLoss()
+            criterion = nn.CrossEntropyLoss(reduction='mean')
             optimizer = optim.SGD(self.model.parameters(),lr = 0.01, momentum=0.9)# **self.config['optimizer']['args'])
             max_at_epoch = 5
             self.best_lr = 0.343

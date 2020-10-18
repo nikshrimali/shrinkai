@@ -75,10 +75,11 @@ def resnet_train_alb():
  
     train_transforms = [
         A.Normalize(mean=mean, std=std),
+        A.ShiftScaleRotate(shift_limit=0.05, scale_limit=0.05, rotate_limit=15, p=0.25),
         A.RGBShift(r_shift_limit=15, g_shift_limit=15, b_shift_limit=15, p=0.5),
-        A.RandomBrightnessContrast(p=0.25),
+        A.MotionBlur(blur_limit=10, p=0.1),
         A.ChannelShuffle(p=0.1),
-        A.MotionBlur(blur_limit=17, p=0.1),
+        A.RandomBrightnessContrast(p=0.25),
         A.PadIfNeeded(min_height=70, min_width=70, border_mode=4, always_apply=True, p=1.0),
         A.RandomCrop (64, 64, always_apply=True, p=1.0),
         A.HorizontalFlip(p=0.5),
@@ -89,19 +90,11 @@ def resnet_train_alb():
     return lambda img:transforms_result(image=np.array(img))["image"]
 
 def resent_test_alb():
-    mean = (0.5)
+    mean = [0.4802, 0.4481, 0.3975]
+    std = [0.2302, 0.2265, 0.2262]
+
     test_transform = [
         A.Normalize(mean=mean, std=std),
         ToTensor()]
     transforms_result = A.Compose(test_transform)
     return lambda img:transforms_result(image=np.array(img))["image"]
-# transforms_result #lambda img:transforms_result(image=np.array(img))["image"]
-
-class AlbumentationTransforms:
-    def __init__(self, transforms):
-        self.transforms = transforms
-
-    def __call__(self, img):
-        img = np.array(img)
-
-        return self.transforms(image=img)['image']
