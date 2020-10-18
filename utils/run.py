@@ -212,7 +212,7 @@ class Shrink:
                 print(f'EPOCHS : {i}', lr_value)
                 model_training(self.model, self.device, self.trainloader, optimizer, scheduler, self.train_acc, self.train_losses, criterion, l1_loss=False)
                 torch.save(self.model.state_dict(), self.model_path)
-                self.misclassified, self.correct_classified = model_testing(self.model, self.device, self.testloader, self.test_acc, self.test_losses)
+                self.misclassified, self.correct_classified = model_testing(self.model, self.device, self.testloader, self.test_acc, self.test_losses, criterion)
         else:
             return self.model
                 

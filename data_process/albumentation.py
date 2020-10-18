@@ -75,6 +75,10 @@ def resnet_train_alb():
  
     train_transforms = [
         A.Normalize(mean=mean, std=std),
+        A.RGBShift(r_shift_limit=15, g_shift_limit=15, b_shift_limit=15, p=0.5),
+        A.RandomBrightnessContrast(p=0.25),
+        A.ChannelShuffle(p=0.1),
+        A.MotionBlur(blur_limit=17, p=0.1),
         A.PadIfNeeded(min_height=70, min_width=70, border_mode=4, always_apply=True, p=1.0),
         A.RandomCrop (64, 64, always_apply=True, p=1.0),
         A.HorizontalFlip(p=0.5),
